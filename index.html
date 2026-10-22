@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ジュニア大賞 自動記入</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="bar">
+  <h1>ジュニア大賞 自動記入</h1>
+  <span id="cfgTitle" class="muted"></span>
+</header>
+
+<main class="wrap">
+  <section class="card">
+    <h2><span class="num">1</span>Excelテンプレートを用意する</h2>
+    <p class="muted">「投票内容」シートに1回だけ、「投票者」シートに1行1枚で記入します。固定部門の名前は入力済みで、書き換えても反映されません。</p>
+    <button id="dlTemplate" class="btn">Excelテンプレートをダウンロード</button>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">2</span>記入したExcelを読み込む</h2>
+    <label class="file">
+      <input type="file" id="xlsxInput" accept=".xlsx">
+      <span>ファイルを選ぶ</span>
+    </label>
+    <span id="xlsxName" class="muted"></span>
+    <div id="messages"></div>
+  </section>
+
+  <section class="card" id="previewCard" hidden>
+    <h2><span class="num">3</span>確認して出力する</h2>
+    <div class="row">
+      <label>フォント
+        <select id="fontSel"></select>
+      </label>
+      <label>印刷
+        <select id="paperSel">
+          <option value="color">カラー</option>
+          <option value="gray">白黒</option>
+          <option value="light">白黒（背景を薄く・インク節約）</option>
+        </select>
+      </label>
+      <label>文字の色
+        <select id="colorSel">
+          <option value="#1d1d1f">黒</option>
+          <option value="#1f3a93">青</option>
+        </select>
+      </label>
+      <label>プレビュー
+        <select id="rowSel"></select>
+      </label>
+    </div>
+    <div id="rowWarnings"></div>
+    <div class="preview"><canvas id="preview"></canvas></div>
+    <div class="row">
+      <label class="radio"><input type="radio" name="outMode" value="single" checked> 1つのPDFにまとめる</label>
+      <label class="radio"><input type="radio" name="outMode" value="zip"> 1枚ずつのPDF（ZIP）</label>
+    </div>
+    <button id="exportBtn" class="btn primary">PDFを出力</button>
+    <div id="progress" class="muted"></div>
+  </section>
+
+  <p class="foot muted">入力したデータはこのブラウザの中だけで処理され、どこにも送信・保存されません。</p>
+</main>
+
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/pdf-lib.min.js"></script>
+<script src="js/save.js"></script>
+<script src="js/fonts.js"></script>
+<script src="js/render.js"></script>
+<script src="js/xlsx-mini.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
