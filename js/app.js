@@ -5,10 +5,11 @@
   const SHEET_VOTE = '投票内容';
   const SHEET_VOTER = '投票者';
   const SHEET_HELP = '記入方法';
+  const SHEET_LOOP = '理由ループ';
   const OUT_DPI = 200;
 
   let cfg = null, img = null;
-  let voteRows = [], voters = [];
+  let voteRows = [], voters = [], loops = {};
 
   init().catch((e) => showMessages([{ kind: 'err', text: '設定の読み込みに失敗しました：' + e.message }]));
 
@@ -70,6 +71,7 @@
     const help = [['項目', '書き方']];
     help.push(['投票内容シート', '全ページ共通。部門番号と部門名は変更しないでください']);
     help.push(['投票者シート', '1行が応募用紙1枚になります。空の行は無視します']);
+    help.push(['理由ループシート', '1つの部門で理由を1枚ごとに変えたいときに使います。部門番号と理由を1行に1つずつ、同じ部門番号で何行でも書けます。1枚目は1つ目の理由、2枚目は2つ目…と順番に使い、最後まで行ったら最初に戻ります。ここに書いた部門は「投票内容」シートの理由より優先されます']);
     help.push(['名前欄', '左ページの一覧の番号だけでもOK。一覧にないジュニアは「141+名前」と書きます']);
     for (const f of vf) {
       if (f.type === 'choice') help.push([f.key, f.options.map((o, i) => `${i + 1}=${o.label}`).join('　')]);
@@ -80,6 +82,7 @@
     const blob = await XlsxMini.write([
       { name: SHEET_VOTE, rows: vrows, widths: [10, 30, 16, 44, ...nameParts.slice(1).map(() => 16), 30], headerStyle: true, greyCells: grey },
       { name: SHEET_VOTER, rows: [voterHead], widths: vf.map((f) => (f.key === '住所' ? 48 : 14)), headerStyle: true, textCols },
+      { name: SHEET_LOOP, rows: [['部門番号', '理由']], widths: [10, 60], headerStyle: true, textCols: [0] },
       { name: SHEET_HELP, rows: help, widths: [18, 80], headerStyle: true },
     ]);
     try { await download(blob, `ジュニア大賞_入力テンプレート_${cfg.year || ''}.xlsx`); }
@@ -100,6 +103,18 @@
 
       voteRows = XlsxMini.toObjects(book[SHEET_VOTE]);
       voters = XlsxMini.toObjects(book[SHEET_VOTER]);
+      loops = {};
+      const loopMsgs = [];
+      if (book[SHEET_LOOP]) {
+        const reasonNos = new Set(cfg.fields.filter((f) => f.sheet === 'vote' && f.part === '理由').map((f) => R.normNo(f.no)));
+        for (const r of XlsxMini.toObjects(book[SHEET_LOOP])) {
+          const no = R.normNo(r['部門番号']);
+          const reason = String(r['理由'] ?? '').trim();
+          if (!no || !reason) { loopMsgs.push(`${r._row}行目：部門番号と理由の両方を入れてください`); continue; }
+          if (!reasonNos.has(no)) { loopMsgs.push(`${r._row}行目：部門番号「${no}」には理由欄がありません`); continue; }
+          (loops[no] = loops[no] || []).push(reason);
+        }
+      }
 
       const vf = R.voterFields(cfg);
       const head = (book[SHEET_VOTER][0] || []).map((h) => String(h).trim());
@@ -120,7 +135,10 @@
       }
       if (rowErrs.length) msgs.push({ kind: 'err', text: '入力エラー', list: rowErrs });
 
-      const { warnings, notices, values } = R.resolveValues(cfg, voteRows, voters[0] || {});
+      const { warnings, notices, values } = R.resolveValues(cfg, voteRows, voters[0] || {}, { loops, index: 0 });
+      const loopNos = Object.keys(loops);
+      if (loopNos.length) msgs.push({ kind: 'ok', text: '理由ループ', list: loopNos.map((no) => `部門${no}：${loops[no].length}種類の理由を1枚ごとに順番に使います`) });
+      if (loopMsgs.length) msgs.push({ kind: 'warn', text: '理由ループシートの確認（この行は使いません）', list: loopMsgs });
       const fixedWarns = warnings;
       if (fixedWarns.length) msgs.push({ kind: 'warn', text: '固定部門の書き換えを検出しました（出力には反映されません）', list: fixedWarns });
       if (notices.length) msgs.push({ kind: 'warn', text: '投票内容シートの確認', list: notices });
@@ -184,7 +202,7 @@
     const W = Math.round(cfg.page.widthMm / 25.4 * 150);
     const H = Math.round(cfg.page.heightMm / 25.4 * 150);
     c.width = W; c.height = H;
-    const { values } = R.resolveValues(cfg, voteRows, voters[i]);
+    const { values } = R.resolveValues(cfg, voteRows, voters[i], { loops, index: i });
     const warns = R.renderPage(c.getContext('2d'), W, H, cfg, img, values, { font: family, color: $('colorSel').value, paper: $('paperSel').value, seed: i + 1 });
     showMessages(warns.length ? [{ kind: 'warn', text: 'この1枚の注意点', list: warns }] : [], $('rowWarnings'));
   }
@@ -210,7 +228,7 @@
       const zip = mode === 'zip' ? new JSZip() : null;
       for (let i = 0; i < voters.length; i++) {
         $('progress').textContent = `${i + 1} / ${voters.length} 枚目を作成中…`;
-        const { values } = R.resolveValues(cfg, voteRows, voters[i]);
+        const { values } = R.resolveValues(cfg, voteRows, voters[i], { loops, index: i });
         const w = R.renderPage(ctx, W, H, cfg, img, values, { font: family, color, paper, seed: i + 1 });
         w.forEach((t) => allWarn.push(`${i + 1}枚目：${t}`));
         const jpg = await new Promise((res) => canvas.toBlob((b) => res(b), 'image/jpeg', 0.9));

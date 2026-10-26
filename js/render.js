@@ -7,7 +7,8 @@
 
   // Excelの値 → 欄IDごとの描画値。固定部門の名前はExcelを読まず、設定の値だけを使う
   // notices：取り込み時に利用者へ伝える注意（固定の書き換え、使われない列への入力など）
-  function resolveValues(cfg, voteRows, voterRow) {
+  // loop：{ loops: {部門番号: [理由...]}, index: 何枚目(0始まり) }。ループがある部門は枚ごとに理由を順番に回す
+  function resolveValues(cfg, voteRows, voterRow, loop) {
     const values = {};
     const warnings = [];
     const notices = [];
@@ -50,7 +51,9 @@
             warnings.push(`部門${f.no}「${f.category}」の${f.part}は固定です。Excelの「${xl}」は使わず「${f.fixed}」を描画します`);
           }
         } else {
-          values[f.id] = str(row[f.part]) || (f.part === '理由' ? stray[no] || '' : '');
+          const list = f.part === '理由' && loop && loop.loops && loop.loops[no];
+          if (list && list.length) values[f.id] = list[(loop.index || 0) % list.length];
+          else values[f.id] = str(row[f.part]) || (f.part === '理由' ? stray[no] || '' : '');
         }
       } else {
         values[f.id] = str((voterRow || {})[f.key]);
@@ -240,5 +243,5 @@
     return out;
   }
 
-  g.JTRender = { resolveValues, renderPage, categories, voterFields, fieldLabel, FALLBACK_FONT, MM_PER_PT };
+  g.JTRender = { resolveValues, normNo, renderPage, categories, voterFields, fieldLabel, FALLBACK_FONT, MM_PER_PT };
 })(window);
