@@ -91,7 +91,9 @@
       return new DOMParser().parseFromString(await f.async('string'), 'application/xml');
     };
     const tags = (node, name) => Array.from(node.getElementsByTagNameNS('*', name));
-    const textOf = (node) => tags(node, 't').map((t) => t.textContent).join('');
+    // Excelが保存するふりがな（<rPh>の中の<t>）は本文ではないので読まない
+    const inPhonetic = (el, root) => { for (let p = el.parentNode; p && p !== root; p = p.parentNode) if (p.localName === 'rPh') return true; return false; };
+    const textOf = (node) => tags(node, 't').filter((t) => !inPhonetic(t, node)).map((t) => t.textContent).join('');
 
     const wb = await parse('xl/workbook.xml');
     const rels = await parse('xl/_rels/workbook.xml.rels');
