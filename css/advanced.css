@@ -28,3 +28,6 @@
 .help p, .help li { font-size: 14px; }
 .help ol { padding-left: 20px; margin: 6px 0; }
 .help a, .foot a { color: var(--accent); }
+.helplink-inline { color: var(--accent); white-space: nowrap; }
+.help ul { padding-left: 20px; margin: 6px 0; }
+.help { scroll-margin-top: 12px; }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>作る枚数と号について｜ジュニア大賞 上級モード</title>
+<title>上級モードの使い方｜ジュニア大賞</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/advanced.css">
 </head>
@@ -13,7 +13,30 @@
 </header>
 
 <main class="wrap">
-  <section class="card help">
+  <section class="card help" id="excel">
+    <h2>Excelの書き方</h2>
+    <h3>投票者シート</h3>
+    <p>1行が応募用紙1枚です。性別・学年は番号で入力します（対応は「記入方法」シートにあります）。</p>
+
+    <h3>理由シート</h3>
+    <p>交換先アカウント・部門番号・ジュニア番号・理由を、1行に1つずつ書きます。交換先アカウントは交換CSVのURLをそのまま貼っても、@なしのIDだけでも大丈夫です。</p>
+
+    <h3>投票内容シート</h3>
+    <p>通常版と同じです。交換CSVの票が入らないページ（票数が投票者数に満たない部門の残りのページや、CSVにない部門）は、この内容で埋まります。</p>
+
+    <h3>理由のループ</h3>
+    <p><strong>「交換先アカウント・部門番号・ジュニア番号」の3つが一致する理由を、1枚ごとに順番にループします。</strong></p>
+    <ul>
+      <li>3つのうち1つでも違えば別の理由として扱います。同じ部門・同じジュニアでも交換先が違えば別、同じ交換先・同じジュニアでも部門が違えば別です</li>
+      <li>3つが同じ行がCSVに複数あっても1つの交換にまとめ、ページを連続させて理由も通しでループします（例：400票＋400票なら800票通し）</li>
+      <li>例：部門4の10番を Aさん150票・Bさん200票 → 1〜150枚目はAさん用の理由、151〜350枚目はBさん用の理由</li>
+      <li>交換先アカウントを空欄にした理由は、その部門・ジュニアで専用の理由がない交換すべてに共通で使います</li>
+      <li>どちらもなければ「投票内容」シートの理由を使います</li>
+      <li>コンビ・3人組は1人目のジュニア番号で登録します</li>
+    </ul>
+  </section>
+
+  <section class="card help" id="count">
     <h2>作る枚数と号について</h2>
     <p><strong>作る枚数は「投票者」シートの行数で決まります。</strong></p>
 

@@ -18,17 +18,7 @@
 
   <section class="card">
     <h2><span class="num">1</span>Excelを用意する</h2>
-    <p class="muted">「投票者」シートに1行1枚、「理由」シートに交換先アカウント・部門番号・ジュニア番号・理由を1行に1つ書きます。交換CSVの票が入らないページは「投票内容」シートの内容になります。</p>
-    <div class="loopnote">
-      <strong>理由は「交換先アカウント・部門番号・ジュニア番号」の3つが一致するものをループします</strong>
-      <ul>
-        <li>3つのうち1つでも違えば別の理由として扱います。同じ部門・同じジュニアでも交換先が違えば別、同じ交換先・同じジュニアでも部門が違えば別です。ページは交換ごとにまとまり、理由もそれぞれ1つ目からループします</li>
-        <li>3つが同じ行がCSVに複数あっても1つの交換にまとめ、ページを連続させて理由も通しでループします（例：400票＋400票なら800票通し）</li>
-        <li>例：部門4の10番を Aさん150票・Bさん200票 → 1〜150枚目はAさん用の理由、151〜350枚目はBさん用の理由</li>
-        <li>交換先アカウントを空欄にした理由は、その部門・ジュニアで専用の理由がない交換すべてに共通で使います</li>
-        <li>どちらもなければ「投票内容」シートの理由を使います</li>
-      </ul>
-    </div>
+    <p class="muted">「投票者」「理由」「投票内容」の3シートに記入します。<a class="helplink-inline" href="advanced-help.html#excel">書き方と理由のループについて ›</a></p>
     <button id="dlTemplate" class="btn">上級モード用Excelテンプレートをダウンロード</button>
   </section>
 
@@ -46,7 +36,7 @@
       <label>今回の号
         <select id="monthSel"></select>
       </label>
-      <a class="helplink" href="advanced-help.html">作る枚数と号について ›</a>
+      <a class="helplink" href="advanced-help.html#count">作る枚数と号について ›</a>
     </div>
     <div id="messages"></div>
   </section>
