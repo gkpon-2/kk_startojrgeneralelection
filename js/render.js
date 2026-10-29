@@ -80,9 +80,13 @@
     opts = opts || {};
     const warnings = [];
     ctx.save();
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, W, H);
-    if (img) ctx.drawImage(paperOf(img, opts.paper), 0, 0, W, H);
+    // transparent：文字の層だけを描く（背景は別に1回だけPDFへ入れる）
+    if (opts.transparent) ctx.clearRect(0, 0, W, H);
+    else {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+      if (img) ctx.drawImage(paperOf(img, opts.paper), 0, 0, W, H);
+    }
 
     const pxPerPt = W / (cfg.page.widthMm / MM_PER_PT);
     // 白黒出力では文字も黒に揃える
@@ -243,5 +247,5 @@
     return out;
   }
 
-  g.JTRender = { resolveValues, normNo, renderPage, categories, voterFields, fieldLabel, FALLBACK_FONT, MM_PER_PT };
+  g.JTRender = { resolveValues, normNo, paperOf, renderPage, categories, voterFields, fieldLabel, FALLBACK_FONT, MM_PER_PT };
 })(window);

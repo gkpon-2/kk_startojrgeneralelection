@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ジュニア大賞 自動記入 上級モード</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/advanced.css">
+</head>
+<body>
+<header class="bar">
+  <h1>ジュニア大賞 自動記入 <span class="tag-adv">上級モード</span></h1>
+  <span id="cfgTitle" class="muted"></span>
+</header>
+
+<main class="wrap">
+  <p class="note">大賞タスクトラッカーから出力したCSVを使えます（管理者さんの許可をいただいています）。<br>交換CSVから、交換ごとにまとめて大量の応募用紙を作るモードです。交換CSVは進行状況が「記入中」の行だけを使います。<strong>枚数が多い場合はPCで使ってください。</strong></p>
+
+  <section class="card">
+    <h2><span class="num">1</span>Excelを用意する</h2>
+    <p class="muted">「投票者」シートに1行1枚、「理由」シートに部門番号・ジュニア番号・理由を1行に1つ書きます。同じ部門・ジュニアの理由は1枚ごとに順番にループします。交換CSVの票が入らないページは「投票内容」シートの内容になります。</p>
+    <button id="dlTemplate" class="btn">上級モード用Excelテンプレートをダウンロード</button>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">2</span>ファイルを読み込む</h2>
+    <div class="row">
+      <label class="file"><input type="file" id="csvInput" accept=".csv,text/csv"><span>交換CSVを選ぶ</span></label>
+      <span id="csvName" class="muted"></span>
+    </div>
+    <div class="row">
+      <label class="file"><input type="file" id="xlsxInput" accept=".xlsx"><span>Excel（投票者・理由）を選ぶ</span></label>
+      <span id="xlsxName" class="muted"></span>
+    </div>
+    <div class="row">
+      <label>今回の号
+        <select id="monthSel"></select>
+      </label>
+    </div>
+    <div id="messages"></div>
+  </section>
+
+  <section class="card" id="planCard" hidden>
+    <h2><span class="num">3</span>割り当てを確認する</h2>
+    <div id="planInfo"></div>
+    <div class="tableWrap"><table id="summaryTable"></table></div>
+    <div id="issues"></div>
+    <div class="row">
+      <button id="dlMapping" class="btn">対応表（CSV）</button>
+      <button id="dlRemaining" class="btn">残りCSV（次の号用）</button>
+    </div>
+  </section>
+
+  <section class="card" id="previewCard" hidden>
+    <h2><span class="num">4</span>確認して出力する</h2>
+    <div class="row">
+      <label>フォント <select id="fontSel"></select></label>
+      <label>印刷
+        <select id="paperSel">
+          <option value="color">カラー</option>
+          <option value="gray">白黒</option>
+          <option value="light">白黒（背景を薄く・インク節約）</option>
+        </select>
+      </label>
+      <label>文字の色
+        <select id="colorSel">
+          <option value="#1d1d1f">黒</option>
+          <option value="#1f3a93">青</option>
+        </select>
+      </label>
+      <label>プレビュー（何枚目）
+        <span class="pager">
+          <button class="btn small" id="prevPage" aria-label="前の1枚">‹</button>
+          <input type="number" id="pageNo" min="1" value="1">
+          <button class="btn small" id="nextPage" aria-label="次の1枚">›</button>
+        </span>
+      </label>
+    </div>
+    <div id="pageWarnings"></div>
+    <div class="preview"><canvas id="preview"></canvas></div>
+
+    <div class="row">
+      <label>1ファイルの枚数 <input type="number" id="chunkSize" min="10" max="500" value="100"></label>
+      <label>何枚目から <input type="number" id="fromPage" min="1" value="1"></label>
+      <label>何枚目まで <input type="number" id="toPage" min="1" value="1"></label>
+    </div>
+    <p class="muted">途中で止まったときは「何枚目から」を変えて続きだけ作れます。ZIPには対応表と残りCSVも入ります。</p>
+    <div class="row">
+      <button id="exportBtn" class="btn primary">PDFを出力（ZIP）</button>
+      <button id="cancelBtn" class="btn" hidden>中止</button>
+    </div>
+    <div class="progress" hidden><div id="bar"></div></div>
+    <div id="progress" class="muted"></div>
+  </section>
+
+  <p class="foot muted">入力したデータはこのブラウザの中だけで処理され、どこにも送信・保存されません。<br><a href="index.html">← 通常版に戻る</a></p>
+</main>
+
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/pdf-lib.min.js"></script>
+<script src="js/save.js"></script>
+<script src="js/fonts.js"></script>
+<script src="js/render.js"></script>
+<script src="js/xlsx-mini.js"></script>
+<script src="js/plan.js"></script>
+<script src="js/advanced.js"></script>
+</body>
+</html>
