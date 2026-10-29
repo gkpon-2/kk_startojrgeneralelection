@@ -72,7 +72,7 @@
     });
     const help = [['項目', '書き方'],
       ['交換CSV', '交換管理アプリの書き出しをそのまま読み込みます。進行状況が「記入中」の行だけ使います。項目B（部門）・項目C（ジュニア）・数量を使います'],
-      ['理由シート', '交換先アカウント・部門番号・ジュニア番号・理由を1行に1つ。交換先アカウントは交換CSVのURLをそのまま貼るか、@なしのIDでもOK。同じジュニアでも交換相手ごとに別の理由を使えます。アカウントを空欄にした理由は、その部門・ジュニアで専用の理由がない交換すべてに使います。同じ部門・ジュニアの理由は1枚ごとに順番にループします。1行だけなら全部同じ理由になります。登録がない交換は投票内容シートの理由を使います。コンビ・3人組は1人目の番号で登録します'],
+      ['理由シート', '交換先アカウント・部門番号・ジュニア番号・理由を1行に1つ。交換先アカウントは交換CSVのURLをそのまま貼るか、@なしのIDでもOK。同じジュニアでも交換相手ごとに別の理由を使えます。アカウントを空欄にした理由は、その部門・ジュニアで専用の理由がない交換すべてに使います。アカウントを「自分」にした理由は、投票内容シートの内容になるページ（自分の票）で、名前が一致するときにループします。同じ部門・ジュニアの理由は1枚ごとに順番にループします。1行だけなら全部同じ理由になります。登録がない交換は投票内容シートの理由を使います。コンビ・3人組は1人目の番号で登録します'],
       ['投票者シート', '1行が応募用紙1枚。今回作る枚数ぶんの行を入れます'],
       ['投票内容シート', '通常版と同じです。交換CSVの票が入らないページ（票数が投票者数に満たない部門の残りのページ、CSVにない部門）は、この内容で埋まります'],
       ['固定の部門', '恋人・先生・キャスター・MC・手がきれいは39番固定です。交換CSVでも39番宛ての交換だけ使え、理由は理由シートから入ります。39番以外の交換はエラーになります'],
@@ -139,6 +139,10 @@
     const active = csv.hasStatus ? csv.list.filter((x) => x.status === P.TARGET_STATUS).length : csv.list.length;
     msgs.push({ kind: 'ok', text: `交換${active}件（進行状況「${P.TARGET_STATUS}」）・投票者${voters.length}人・理由${nReasons}件（${Object.keys(reasons).length}組）を読み込みました` + (csv.hasStatus && active < csv.list.length ? `。ほか${csv.list.length - active}件は「${P.TARGET_STATUS}」ではないので使いません` : '') });
     if (!csv.hasStatus) msgs.push({ kind: 'warn', text: 'CSVに「進行状況」の列がないので、全行を使います' });
+    const ownN = Object.keys(reasons).filter((k) => k.startsWith(P.OWN + '|'));
+    if (ownN.length) msgs.push({ kind: 'ok', text: `自分の票の理由ループ：${ownN.map((k) => { const [, no, jr] = k.split('|'); return `部門${no}・${jr}番（${reasons[k].length}種類）`; }).join('、')}` });
+    const unused = P.unusedOwn(cfg, reasons, R.resolveValues(cfg, voteRows, voters[0] || {}).values);
+    if (unused.length) msgs.push({ kind: 'warn', text: '理由シートの「自分」の行の確認', list: unused });
     else if (!active) msgs.push({ kind: 'warn', text: `進行状況が「${P.TARGET_STATUS}」の交換がありません` });
     if (errs.length) msgs.push({ kind: 'err', text: '投票者シートの入力エラー', list: errs });
     show(msgs);
@@ -188,7 +192,8 @@
   // ---------- 1ページ分の値 ----------
   function valuesFor(i) {
     const { values } = R.resolveValues(cfg, voteRows, voters[i] || {});
-    return Object.assign(values, P.pageVotes(planRes, reasons, i));
+    Object.assign(values, P.pageVotes(planRes, reasons, i));
+    return Object.assign(values, P.ownReasons(cfg, planRes, reasons, values, i));
   }
 
   let token = 0;

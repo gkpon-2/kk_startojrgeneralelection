@@ -31,3 +31,6 @@
 .helplink-inline { color: var(--accent); white-space: nowrap; }
 .help ul { padding-left: 20px; margin: 6px 0; }
 .help { scroll-margin-top: 12px; }
+.helptable { border-collapse: collapse; font-size: 13px; margin: 8px 0; width: 100%; display: block; overflow-x: auto; }
+.helptable th, .helptable td { border: 1px solid var(--line); padding: 4px 8px; text-align: left; white-space: nowrap; }
+.helptable th { background: var(--bg); color: var(--muted); font-weight: 600; }

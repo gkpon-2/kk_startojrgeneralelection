@@ -195,6 +195,44 @@
     return out;
   }
 
+  // 自分の票（投票内容シートの内容になるページ）の理由ループ
+  // 理由シートで交換先アカウントを「自分」にした行を、部門・ジュニアが投票内容の名前と一致するときに使う
+  const OWN = '自分';
+  function ownReasons(cfg, planRes, reasons, values, i) {
+    const out = {};
+    const used = {};
+    for (const [no, segs] of Object.entries(planRes.segments)) used[no] = segs.reduce((a, x) => a + x.count, 0);
+    const parts = {};
+    for (const f of cfg.fields) {
+      if (f.sheet !== 'vote' || !/^\d+$/.test(String(f.no))) continue;
+      (parts[f.no] = parts[f.no] || {})[f.part] = f;
+    }
+    for (const [no, p] of Object.entries(parts)) {
+      if (!p['理由'] || !p['名前']) continue;
+      if (i < (used[no] || 0)) continue; // 交換の票が入るページ
+      const name = String(values[p['名前'].id] ?? '').trim();
+      if (!name) continue;
+      const list = reasons[`${OWN}|${no}|${leadNum(name) || name}`];
+      if (list && list.length) out[p['理由'].id] = list[(i - (used[no] || 0)) % list.length];
+    }
+    return out;
+  }
+
+  // 「自分」の行のうち、投票内容の名前と合わずに使われないものを知らせる
+  function unusedOwn(cfg, reasons, values) {
+    const msgs = [];
+    const nameOf = {};
+    for (const f of cfg.fields) if (f.sheet === 'vote' && f.part === '名前' && /^\d+$/.test(String(f.no))) nameOf[f.no] = String(values[f.id] ?? '').trim();
+    for (const k of Object.keys(reasons)) {
+      const [a, no, jr] = k.split('|');
+      if (a !== OWN) continue;
+      const n = nameOf[no];
+      if (n === undefined) msgs.push(`部門${no}は用紙にありません（理由シートの「自分」の行）`);
+      else if ((leadNum(n) || n) !== jr) msgs.push(`部門${no}・${jr}番：投票内容シートの名前（${n || '空欄'}）と一致しないので、この「自分」の理由は使いません`);
+    }
+    return msgs;
+  }
+
   // 対応表：交換先ごとに、今回何枚目〜何枚目に入ったか
   function mapping(planRes, chunk, fileName) {
     const rows = [['交換先アカウント', '部門', 'ジュニア', '今回の枚数', '何枚目から', '何枚目まで', 'ファイル', '残り']];
@@ -223,5 +261,5 @@
     return rows;
   }
 
-  g.JTPlan = { TARGET_STATUS, acctKey, parseCsv, toCsv, decode, readExchanges, plan, pageVotes, mapping, remainingCsv, leadNum, splitNames };
+  g.JTPlan = { OWN, ownReasons, unusedOwn, TARGET_STATUS, acctKey, parseCsv, toCsv, decode, readExchanges, plan, pageVotes, mapping, remainingCsv, leadNum, splitNames };
 })(typeof window !== 'undefined' ? window : globalThis);
