@@ -86,3 +86,11 @@ select, input[type=text], input[type=number] {
 .msg.ok { background: var(--ok-bg); color: var(--ok-ink); }
 .msg ul { margin: 4px 0 0; padding-left: 18px; }
 .foot { text-align: center; margin: 20px 0; }
+.advlink {
+  display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ink);
+  background: var(--card); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
+}
+.advlink:hover { background: color-mix(in srgb, var(--accent) 8%, var(--card)); }
+.advlink-tag { flex: none; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
+.advlink-text { flex: 1; min-width: 0; font-size: 14px; line-height: 1.5; }
+.advlink-arrow { flex: none; font-size: 22px; color: var(--accent); }
