@@ -134,31 +134,45 @@
 
     // 部門ごとに、今回の号のみの行 → CSVの順 で詰める
     const segments = {}; // no -> [{ex, start, count, used0}]
+    const keyUsed = new Map(); // 交換（交換先・部門・ジュニア）ごとの通しの使用数
+    const keyOf_ = new Map();  // 行 → 交換のキー
     const taken = new Map();
     const groups = {};
     for (const ex of usable) (groups[ex.no] = groups[ex.no] || []).push(ex);
     const summary = [];
     for (const no of Object.keys(groups).sort((a, b) => a - b)) {
-      const list = groups[no].slice().sort((a, b) => (b.onlyMonth === month) - (a.onlyMonth === month) || a.line - b.line);
+      // 交換先・部門・ジュニアが同じ行は1つの交換として扱い、ページを連続させて理由も通しでループする
+      const keyOf = (ex) => `${acctKey(ex.acct)}|${no}|${ex.names.join(',')}`;
+      const first = new Map();
+      for (const ex of groups[no].slice().sort((a, b) => a.line - b.line)) if (!first.has(keyOf(ex))) first.set(keyOf(ex), ex.line);
+      const pri = (ex) => (ex.onlyMonth === month ? 0 : 1);
+      const list = groups[no].slice().sort((a, b) => pri(a) - pri(b) || first.get(keyOf(a)) - first.get(keyOf(b)) || a.line - b.line);
       let p = 0, need = 0;
       segments[no] = [];
+      const warned = new Set();
       for (const ex of list) {
+        const k = keyOf(ex);
+        // 前の号までに使った数（同じ交換の行は同じ値を持つので最大値を使う）
+        if (!keyUsed.has(k)) keyUsed.set(k, Math.max(...list.filter((x) => keyOf(x) === k).map((x) => x.used)));
+        keyOf_.set(ex, k);
         need += ex.qty;
         const n = Math.min(ex.qty, Math.max(0, N - p));
         if (n > 0) {
-          segments[no].push({ ex, start: p, count: n, used0: ex.used });
+          segments[no].push({ ex, start: p, count: n, used0: keyUsed.get(k) });
+          keyUsed.set(k, keyUsed.get(k) + n);
           taken.set(ex, n);
           p += n;
         }
         const rl = reasonsFor(reasons, ex);
-        if (!(rl && rl.length)) issues.push({ level: 'warn', ex, text: `部門${no}・${ex.names[0]}番${ex.acct ? `（${acctKey(ex.acct)}）` : ''}：理由シートに登録がありません（投票内容シートの理由を使います）` });
+        if (!(rl && rl.length) && !warned.has(k)) { warned.add(k); issues.push({ level: 'warn', ex, text: `部門${no}・${ex.names[0]}番${ex.acct ? `（${acctKey(ex.acct)}）` : ''}：理由シートに登録がありません（投票内容シートの理由を使います）` }); }
         if (ex.onlyMonth === month && n < ex.qty) issues.push({ level: 'err', ex, text: `${ex.line}行目 部門${no}：「${month}月号のみ」ですが、今回の枚数に入りきりません（${ex.qty - n}票あふれ）` });
       }
       summary.push({ no, category: byNo[no].category, need, used: p, carry: need - p, fallback: Math.max(0, N - p) });
     }
 
     // 残りCSV（入りきらなかった票・別の号の分・エラーの行）
-    const remaining = exchanges.map((ex) => ({ ex, left: ex.qty - (taken.get(ex) || 0), used: ex.used + (taken.get(ex) || 0) })).filter((r) => r.left > 0);
+    // 同じ交換の行は、次の号で理由が続きから回るよう「使用済み」に交換全体で使った数を書く
+    const remaining = exchanges.map((ex) => ({ ex, left: ex.qty - (taken.get(ex) || 0), used: keyOf_.has(ex) ? keyUsed.get(keyOf_.get(ex)) : ex.used + (taken.get(ex) || 0) })).filter((r) => r.left > 0);
 
     return { segments, summary, issues, remaining, byNo, skipped };
   }
