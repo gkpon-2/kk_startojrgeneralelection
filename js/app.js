@@ -8,15 +8,29 @@
   const SHEET_LOOP = '理由ループ';
   const OUT_DPI = 200;
 
-  let cfg = null, img = null;
+  let cfg = null, img = null, issues = null;
+
+  // 選んだ号の用紙（画像と座標）に切り替える。未選択なら出力できない
+  function useIssue() {
+    const m = $('issueSel').value;
+    const it = m && issues[m];
+    if (it) { cfg = it.cfg; img = it.img; }
+    $('exportBtn').disabled = !it;
+    $('issueHint').hidden = !!it;
+    $('preview').hidden = !it;
+  }
   let voteRows = [], voters = [], loops = {};
 
   init().catch((e) => showMessages([{ kind: 'err', text: '設定の読み込みに失敗しました：' + e.message }]));
 
   async function init() {
-    cfg = await (await fetch('template/config.json', { cache: 'no-store' })).json();
-    $('cfgTitle').textContent = cfg.title || '';
-    img = await loadImage(cfg.image);
+    issues = await JTIssues.loadAll();
+    cfg = issues[12].cfg;   // 号を選ぶまでは12月号の設定（部門・欄は共通）
+    $('cfgTitle').textContent = '第33回ジュニア大賞';
+    const sel = $('issueSel');
+    for (const it of JTIssues.LIST) { const o = document.createElement('option'); o.value = it.month; o.textContent = it.label; sel.appendChild(o); }
+    sel.onchange = () => { useIssue(); drawPreview(); };
+    useIssue();
     for (const f of JTFonts.FONTS) {
       const o = document.createElement('option');
       o.value = f.family; o.textContent = f.label;
@@ -194,6 +208,7 @@
   // ---------- プレビュー ----------
   let drawToken = 0;
   async function drawPreview() {
+    if (!$('issueSel').value) { showMessages([], $('rowWarnings')); return; }
     const token = ++drawToken;
     const family = await JTFonts.ensure($('fontSel').value);
     if (token !== drawToken) return;
@@ -244,8 +259,8 @@
         await new Promise((r) => setTimeout(r, 0));
       }
       const stamp = new Date().toISOString().slice(0, 10);
-      if (single) await download(new Blob([await single.save()], { type: 'application/pdf' }), `ジュニア大賞_${voters.length}枚_${stamp}.pdf`);
-      else await download(await zip.generateAsync({ type: 'blob' }), `ジュニア大賞_${voters.length}枚_${stamp}.zip`);
+      if (single) await download(new Blob([await single.save()], { type: 'application/pdf' }), `ジュニア大賞_${issues[$('issueSel').value].label}_${voters.length}枚_${stamp}.pdf`);
+      else await download(await zip.generateAsync({ type: 'blob' }), `ジュニア大賞_${issues[$('issueSel').value].label}_${voters.length}枚_${stamp}.zip`);
       $('progress').textContent = `${voters.length}枚を出力しました`;
       if (allWarn.length) showMessages([{ kind: 'warn', text: '出力時の注意点', list: allWarn }], $('rowWarnings'));
     } catch (e) {

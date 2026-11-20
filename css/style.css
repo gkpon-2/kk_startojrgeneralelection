@@ -94,3 +94,4 @@ select, input[type=text], input[type=number] {
 .advlink-tag { flex: none; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
 .advlink-text { flex: 1; min-width: 0; font-size: 14px; line-height: 1.5; }
 .advlink-arrow { flex: none; font-size: 22px; color: var(--accent); }
+[hidden] { display: none !important; }

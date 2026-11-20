@@ -37,6 +37,9 @@
   <section class="card" id="previewCard" hidden>
     <h2><span class="num">3</span>確認して出力する</h2>
     <div class="row">
+      <label>号（用紙）
+        <select id="issueSel"><option value="">選んでください</option></select>
+      </label>
       <label>フォント
         <select id="fontSel"></select>
       </label>
@@ -57,6 +60,7 @@
         <select id="rowSel"></select>
       </label>
     </div>
+    <div id="issueHint" class="msg warn">出力する号（12月号・1月号）を選んでください。号ごとに用紙の色と位置が違います</div>
     <div id="rowWarnings"></div>
     <div class="preview"><canvas id="preview"></canvas></div>
     <div class="row">
@@ -73,6 +77,7 @@
 <script src="vendor/jszip.min.js"></script>
 <script src="vendor/pdf-lib.min.js"></script>
 <script src="js/save.js"></script>
+<script src="js/issues.js"></script>
 <script src="js/fonts.js"></script>
 <script src="js/render.js"></script>
 <script src="js/xlsx-mini.js"></script>

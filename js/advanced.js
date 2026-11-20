@@ -5,7 +5,7 @@
   const OUT_DPI = 200;
   const SHEET_VOTER = '投票者', SHEET_REASON = '理由', SHEET_VOTE = '投票内容', SHEET_HELP = '記入方法';
 
-  let cfg = null, img = null;
+  let cfg = null, img = null, issues = null;
   let csv = null;            // {head, list}
   let voters = [], voteRows = [], reasons = {};
   let planRes = null;
@@ -14,9 +14,9 @@
   init().catch((e) => show([{ kind: 'err', text: '設定の読み込みに失敗しました：' + e.message }]));
 
   async function init() {
-    cfg = await (await fetch('template/config.json', { cache: 'no-store' })).json();
-    $('cfgTitle').textContent = cfg.title || '';
-    img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('用紙画像を読み込めません')); i.src = cfg.image; });
+    issues = await JTIssues.loadAll();
+    cfg = issues[12].cfg; img = issues[12].img;
+    $('cfgTitle').textContent = '第33回ジュニア大賞';
     for (const f of JTFonts.FONTS) { const o = document.createElement('option'); o.value = f.family; o.textContent = f.label; $('fontSel').appendChild(o); }
     // 応募用紙があるのは12月号と1月号だけ
     for (const m of [12, 1]) { const o = document.createElement('option'); o.value = m; o.textContent = `${m}月号`; $('monthSel').appendChild(o); }
@@ -25,7 +25,8 @@
     $('dlTemplate').onclick = downloadTemplate;
     $('csvInput').onchange = onCsv;
     $('xlsxInput').onchange = onXlsx;
-    $('monthSel').onchange = replan;
+    // 号を変えると、その号の用紙（画像と座標）に切り替える
+    $('monthSel').onchange = () => { const it = issues[month()]; cfg = it.cfg; img = it.img; replan(); };
     for (const id of ['fontSel', 'colorSel']) $(id).onchange = drawPreview;
     $('paperSel').onchange = () => { $('colorSel').disabled = $('paperSel').value !== 'color'; drawPreview(); };
     $('pageNo').onchange = drawPreview;
