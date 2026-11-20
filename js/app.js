@@ -6,7 +6,8 @@
   const SHEET_VOTER = '投票者';
   const SHEET_HELP = '記入方法';
   const SHEET_LOOP = '理由ループ';
-  const OUT_DPI = 200;
+  // 出力の解像度（画質の選択）
+  const outDpi = () => Number(document.getElementById('qualitySel').value) || 200;
 
   let cfg = null, img = null, issues = null;
 
@@ -231,8 +232,8 @@
     const color = $('colorSel').value;
     const paper = $('paperSel').value;
     const { PDFDocument } = PDFLib;
-    const W = Math.round(cfg.page.widthMm / 25.4 * OUT_DPI);
-    const H = Math.round(cfg.page.heightMm / 25.4 * OUT_DPI);
+    const W = Math.round(cfg.page.widthMm / 25.4 * outDpi());
+    const H = Math.round(cfg.page.heightMm / 25.4 * outDpi());
     const pw = cfg.page.widthMm / 25.4 * 72, ph = cfg.page.heightMm / 25.4 * 72;
     const canvas = document.createElement('canvas');
     canvas.width = W; canvas.height = H;

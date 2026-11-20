@@ -2,7 +2,8 @@
   'use strict';
   const $ = (id) => document.getElementById(id);
   const R = window.JTRender, P = window.JTPlan;
-  const OUT_DPI = 200;
+  // 出力の解像度（画質の選択）
+  const outDpi = () => Number(document.getElementById('qualitySel').value) || 200;
   const SHEET_VOTER = '投票者', SHEET_REASON = '理由', SHEET_VOTE = '投票内容', SHEET_HELP = '記入方法';
 
   let cfg = null, img = null, issues = null;
@@ -227,7 +228,7 @@
     document.querySelector('.progress').hidden = false;
     const family = await JTFonts.ensure($('fontSel').value);
     const { PDFDocument } = PDFLib;
-    const W = Math.round(cfg.page.widthMm / 25.4 * OUT_DPI), H = Math.round(cfg.page.heightMm / 25.4 * OUT_DPI);
+    const W = Math.round(cfg.page.widthMm / 25.4 * outDpi()), H = Math.round(cfg.page.heightMm / 25.4 * outDpi());
     const pw = cfg.page.widthMm / 25.4 * 72, ph = cfg.page.heightMm / 25.4 * 72;
 
     // 背景は1回だけ作って、各PDFで全ページ共有する
